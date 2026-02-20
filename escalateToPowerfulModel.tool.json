@@ -1,0 +1,28 @@
+{
+  "name": "escalate_to_powerful_model",
+  "description": "Use this tool when you encounter a task requiring deeper reasoning, complex logic, advanced code architecture, or nuanced analysis beyond your current capabilities. You choose the best model for the task type. The system will automatically fall back to another model if the preferred one is low on credits or unavailable.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "task": {
+        "type": "string",
+        "description": "The complete, self-contained task to send. Include ALL relevant context — the escalated model has no conversation history."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Why you're escalating this specific task."
+      },
+      "model": {
+        "type": "string",
+        "enum": ["claude-opus-4-6", "gemini-2.0-pro", "gpt-4o"],
+        "description": "Choose based on task type: claude-opus-4-6 for deep reasoning/analysis, gemini-2.0-pro for long context/multimodal, gpt-4o for code generation/structured output."
+      },
+      "estimated_complexity": {
+        "type": "string",
+        "enum": ["low", "medium", "high"],
+        "description": "Your estimate of the task complexity. low = simple Q&A or short output (~500 tokens). medium = multi-step reasoning or moderate code (~2000 tokens). high = deep analysis, long generation, or complex architecture (~4000+ tokens). Used to check if the target model has enough remaining budget before committing."
+      }
+    },
+    "required": ["task", "reason", "model", "estimated_complexity"]
+  }
+}

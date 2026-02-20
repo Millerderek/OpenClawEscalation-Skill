@@ -1,0 +1,129 @@
+======================================================
+  OpenClaw Escalation Skill — Agent Install Instructions
+======================================================
+
+These instructions are written to be followed by an AI agent (e.g. OpenClaw itself)
+performing the installation. Follow each step in order.
+
+
+------------------------------------------------------
+STEP 1 — Copy the tool handler
+------------------------------------------------------
+
+Copy tools/escalateToPowerfulModel.js into your OpenClaw tools directory.
+
+If OpenClaw loads tools from a custom path, place it there instead.
+The file uses ES module syntax (import/export) — ensure your runtime supports it.
+
+
+------------------------------------------------------
+STEP 2 — Register the tool definition
+------------------------------------------------------
+
+Open tools/escalateToPowerfulModel.tool.json and add its contents to the array
+of tool definitions that OpenClaw passes to the Moonshot API on each request.
+
+This is typically found in the file where you build the `tools: [...]` parameter
+for your chat completion calls.
+
+
+------------------------------------------------------
+STEP 3 — Wire in the dispatcher
+------------------------------------------------------
+
+Open dispatch.js and merge the escalation case into your existing tool dispatch
+logic, wherever you handle tool_use responses from the model.
+
+Make sure you are passing the correct session.id — this must be the UUID from
+OpenClaw's session JSONL (the "id" field in the first line of the session file).
+
+
+------------------------------------------------------
+STEP 4 — Add environment variables
+------------------------------------------------------
+
+Copy .env.example to .env and fill in your API keys:
+
+  ANTHROPIC_API_KEY   — from console.anthropic.com
+  GEMINI_API_KEY      — from aistudio.google.com
+  OPENAI_API_KEY      — from platform.openai.com
+
+Only include keys for models you want active. If you omit a key, remove that
+model from the enum in escalateToPowerfulModel.tool.json to prevent routing errors.
+
+
+------------------------------------------------------
+STEP 5 — Install dependencies
+------------------------------------------------------
+
+From the repo root, run:
+
+  npm install
+
+This installs the Anthropic, Google Generative AI, and OpenAI SDKs.
+If these are already installed in your main OpenClaw project, you can skip this
+and import directly from your existing node_modules.
+
+
+------------------------------------------------------
+STEP 6 — Add the system prompt addition
+------------------------------------------------------
+
+Open system-prompt-addition.txt and append its contents to Kimi's system prompt.
+
+This instructs Kimi when and how to use the escalation tool, which models to
+choose for which task types, and how to handle downgrade notifications.
+
+
+------------------------------------------------------
+STEP 7 — Tune budget limits (optional)
+------------------------------------------------------
+
+Open tools/escalateToPowerfulModel.js and adjust MODEL_TOKEN_BUDGETS to match
+your actual API spend limits per session:
+
+  "claude-opus-4-6": 50000   // output tokens before fallback triggers
+  "gemini-2.0-pro":  80000
+  "gpt-4o":          40000
+
+Also adjust ESCALATION_LIMIT (default: 3) if you want more or fewer escalations
+allowed per session.
+
+
+------------------------------------------------------
+STEP 8 — Verify
+------------------------------------------------------
+
+Start a new OpenClaw session and ask Kimi to perform a task it would normally
+escalate — something complex like multi-step architectural reasoning or deep
+code refactoring. Confirm that:
+
+  1. The escalation tool is called with a model and estimated_complexity.
+  2. The response includes model_used, tokens_used, and escalations_remaining.
+  3. The session JSONL file contains an "escalation_used" event after the call.
+  4. If a model is over budget, the fallback chain is triggered automatically.
+
+
+------------------------------------------------------
+FALLBACK CHAIN (for reference)
+------------------------------------------------------
+
+  1. claude-opus-4-6  — preferred for deep reasoning
+  2. gemini-2.0-pro   — fallback for long context
+  3. gpt-4o           — last resort
+
+The chain is defined in FALLBACK_CHAIN inside escalateToPowerfulModel.js
+and can be reordered to match your preference.
+
+
+------------------------------------------------------
+AUDIT / DEBUGGING
+------------------------------------------------------
+
+To see all escalations across sessions:
+
+  grep -r "escalation_used" ~/.openclaw/agents/main/sessions/
+
+To see token spend per model for a specific session:
+
+  grep "escalation_used" ~/.openclaw/agents/main/sessions/<session-id>.jsonl

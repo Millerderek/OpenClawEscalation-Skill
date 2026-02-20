@@ -1,0 +1,26 @@
+{
+  "name": "openclaw-escalation",
+  "version": "1.0.0",
+  "description": "A drop-in skill for OpenClaw that allows the primary AI model to escalate complex tasks to a more powerful model, with budget tracking and automatic fallback.",
+  "type": "module",
+  "main": "tools/escalateToPowerfulModel.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "keywords": [
+    "openclaw",
+    "ai",
+    "escalation",
+    "multi-model",
+    "kimi",
+    "claude",
+    "gemini",
+    "gpt4o"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "@google/generative-ai": "^0.3.0",
+    "openai": "^4.0.0"
+  }
+}
